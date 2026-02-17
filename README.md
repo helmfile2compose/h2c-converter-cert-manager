@@ -1,4 +1,4 @@
-# h2c-operator-certmanager
+# h2c-operator-cert-manager
 
 ![vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4)
 ![python 3](https://img.shields.io/badge/python-3-3776AB)
@@ -46,13 +46,13 @@ pip install -r requirements.txt
 Via h2c-manager (recommended):
 
 ```bash
-python3 h2c-manager.py certmanager
+python3 h2c-manager.py cert-manager
 ```
 
 Manual:
 
 ```bash
-python3 helmfile2compose.py --extensions-dir ./h2c-operator-certmanager --helmfile-dir ~/my-platform -e local --output-dir .
+python3 helmfile2compose.py --extensions-dir ./h2c-operator-cert-manager --helmfile-dir ~/my-platform -e local --output-dir .
 ```
 
 ## License
