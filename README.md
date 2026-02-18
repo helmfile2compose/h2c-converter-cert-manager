@@ -1,4 +1,4 @@
-# h2c-operator-cert-manager
+# h2c-converter-cert-manager
 
 ![vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4)
 ![python 3](https://img.shields.io/badge/python-3-3776AB)
@@ -24,7 +24,7 @@ Replaces cert-manager's certificate issuance with local generation at conversion
 - Processes certificates in rounds: self-signed CAs first, then CA-issued leaf certs, unlocking dependent chains
 - Merges certificates that target the same `secretName` across namespaces (compose is flat -- same secretName = same file on disk, all SANs merged into one cert)
 - Writes `tls.crt`, `tls.key`, and `ca.crt` to `secrets/<secretName>/`
-- Injects results into `ctx.secrets` as K8s Secret format (`stringData`), making them available to downstream operators (trust-manager, keycloak) and workload volume mounts
+- Injects results into `ctx.secrets` as K8s Secret format (`stringData`), making them available to downstream extensions (trust-manager, keycloak) and workload volume mounts
 - Certificates referencing ACME or missing issuers are skipped with a warning
 
 ## Priority
@@ -52,7 +52,7 @@ python3 h2c-manager.py cert-manager
 Manual:
 
 ```bash
-python3 helmfile2compose.py --extensions-dir ./h2c-operator-cert-manager --helmfile-dir ~/my-platform -e local --output-dir .
+python3 helmfile2compose.py --extensions-dir ./h2c-converter-cert-manager --helmfile-dir ~/my-platform -e local --output-dir .
 ```
 
 ## License
