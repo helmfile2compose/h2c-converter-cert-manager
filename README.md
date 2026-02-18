@@ -2,7 +2,7 @@
 
 ![vibe coded](https://img.shields.io/badge/vibe-coded-ff69b4)
 ![python 3](https://img.shields.io/badge/python-3-3776AB)
-![heresy: 6/10](https://img.shields.io/badge/heresy-6%2F10-orange)
+![heresy: 8/10](https://img.shields.io/badge/heresy-8%2F10-red)
 ![public domain](https://img.shields.io/badge/license-public%20domain-brightgreen)
 
 cert-manager CRD converter for [helmfile2compose](https://github.com/helmfile2compose/h2c-core).
