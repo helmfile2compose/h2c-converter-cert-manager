@@ -16,7 +16,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
-from helmfile2compose import ConvertResult
+from helmfile2compose import ConvertResult, Converter
 
 
 # ---- key / cert generation ------------------------------------------------
@@ -134,15 +134,16 @@ def _pem_key(key):
 
 # ---- converter class -------------------------------------------------------
 
-class CertManagerConverter:
+class CertManagerConverter(Converter):
     """Convert cert-manager Certificate/ClusterIssuer/Issuer to Secrets.
 
     Dispatch order matters: ClusterIssuer and Issuer are indexed first,
     then Certificate processes them all (kinds list order = call order).
     """
 
+    name = "cert-manager"
     kinds = ["ClusterIssuer", "Issuer", "Certificate"]
-    priority = 10  # runs first: generates secrets consumed by trust-manager & keycloak
+    priority = 100  # runs first: generates secrets consumed by trust-manager & keycloak
 
     def __init__(self):
         self._issuers = {}     # name → {"kind": str, "spec": dict}
