@@ -16,7 +16,7 @@ from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 
-from helmfile2compose import ConvertResult, Converter
+from h2c import ConvertResult, Converter
 
 
 # ---- key / cert generation ------------------------------------------------
