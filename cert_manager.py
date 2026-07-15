@@ -46,9 +46,9 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
 
     def _index_issuers(self, manifests):
         for m in manifests:
-            name = m.get("metadata", {}).get("name", "")
+            name = (m.get("metadata") or {}).get("name", "")
             if name:
-                self._issuers[name] = m.get("spec", {})
+                self._issuers[name] = m.get("spec") or {}
 
     def _process_certificates(self, manifests, ctx):
         # Process in rounds: each round generates certs whose issuer CA is
@@ -63,8 +63,8 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
             pending = still_pending
 
         for cert_m in pending:
-            name = cert_m.get("metadata", {}).get("name", "?")
-            issuer = cert_m.get("spec", {}).get("issuerRef", {}).get("name", "?")
+            name = (cert_m.get("metadata") or {}).get("name", "?")
+            issuer = ((cert_m.get("spec") or {}).get("issuerRef") or {}).get("name", "?")
             ctx.warnings.append(
                 f"Certificate '{name}' references unresolvable issuer "
                 f"'{issuer}' (ACME or missing) — skipped")
@@ -80,33 +80,33 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
         """
         by_secret = {}
         for cert_m in batch:
-            secret_name = cert_m.get("spec", {}).get("secretName", "")
+            secret_name = (cert_m.get("spec") or {}).get("secretName", "")
             if secret_name not in by_secret:
                 by_secret[secret_name] = cert_m
             else:
                 existing = by_secret[secret_name]
-                existing_dns = set(existing.get("spec", {}).get("dnsNames", []))
-                new_dns = cert_m.get("spec", {}).get("dnsNames", [])
+                existing_dns = set((existing.get("spec") or {}).get("dnsNames") or [])
+                new_dns = (cert_m.get("spec") or {}).get("dnsNames") or []
                 existing_dns.update(new_dns)
                 existing["spec"]["dnsNames"] = sorted(existing_dns)
                 existing.setdefault("_merged_from", []).append(
-                    cert_m.get("metadata", {}).get("name", "?"))
+                    (cert_m.get("metadata") or {}).get("name", "?"))
         return by_secret.values()
 
     def _generate_one(self, cert_m, ctx):
         """Generate a single certificate and inject it into ctx.secrets."""
-        name = cert_m.get("metadata", {}).get("name", "?")
-        spec = cert_m.get("spec", {})
+        name = (cert_m.get("metadata") or {}).get("name", "?")
+        spec = cert_m.get("spec") or {}
         secret_name = spec.get("secretName", "")
         if not secret_name:
             return
 
-        issuer_name = spec.get("issuerRef", {}).get("name", "")
-        issuer_spec = self._issuers.get(issuer_name, {})
+        issuer_name = (spec.get("issuerRef") or {}).get("name", "")
+        issuer_spec = self._issuers.get(issuer_name) or {}
 
         ca_key, ca_cert = None, None
         if "ca" in issuer_spec:
-            ca_secret = issuer_spec["ca"].get("secretName", "")
+            ca_secret = (issuer_spec.get("ca") or {}).get("secretName", "")
             gen = self._generated.get(ca_secret)
             if gen:
                 ca_key, ca_cert = gen["key"], gen["cert"]
@@ -141,7 +141,7 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
                 f.write(file_val)
         ctx.generated_secrets.add(secret_name)
 
-        merged = cert_m.get("_merged_from", [])
+        merged = cert_m.get("_merged_from") or []
         if merged:
             all_names = [name] + merged
             print(f"  cert-manager: generated {secret_name} "
@@ -172,13 +172,13 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
         if cn:
             attrs.append(x509.NameAttribute(NameOID.COMMON_NAME, cn))
         subject = cert_spec.get("subject") or {}
-        for org in subject.get("organizations", []):
+        for org in (subject.get("organizations") or []):
             attrs.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, org))
-        for ou in subject.get("organizationalUnits", []):
+        for ou in (subject.get("organizationalUnits") or []):
             attrs.append(x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, ou))
-        for country in subject.get("countries", []):
+        for country in (subject.get("countries") or []):
             attrs.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
-        for locality in subject.get("localities", []):
+        for locality in (subject.get("localities") or []):
             attrs.append(x509.NameAttribute(NameOID.LOCALITY_NAME, locality))
         if not attrs:
             attrs.append(x509.NameAttribute(NameOID.COMMON_NAME, "h2c-generated"))
@@ -229,7 +229,7 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
             critical=False)
 
         # SAN — dnsNames
-        dns_names = spec.get("dnsNames", [])
+        dns_names = spec.get("dnsNames") or []
         if dns_names:
             builder = builder.add_extension(
                 x509.SubjectAlternativeName([x509.DNSName(n) for n in dns_names]),
@@ -269,8 +269,8 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
         ready = []
         pending = []
         for cert_m in certs:
-            issuer_name = cert_m.get("spec", {}).get(
-                "issuerRef", {}).get("name", "")
+            issuer_name = ((cert_m.get("spec") or {}).get(
+                "issuerRef") or {}).get("name", "")
             issuer_spec = self._issuers.get(issuer_name)
 
             if issuer_spec is None:
@@ -278,7 +278,7 @@ class CertManagerConverter(Converter):  # pylint: disable=too-few-public-methods
             elif "selfSigned" in issuer_spec:
                 ready.append(cert_m)
             elif "ca" in issuer_spec:
-                ca_secret = issuer_spec["ca"].get("secretName", "")
+                ca_secret = (issuer_spec.get("ca") or {}).get("secretName", "")
                 if ca_secret in self._generated:
                     ready.append(cert_m)
                 else:
